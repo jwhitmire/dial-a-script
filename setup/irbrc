@@ -1,0 +1,16 @@
+# copy this to ~/.irbrc.  Boson currently commented out, re-enable if you like
+
+# load libraries
+require 'rubygems'
+require 'wirble'
+# require 'boson'
+# require 'hirb'
+
+# start wirble with color
+Wirble.init
+Wirble.colorize
+
+# Start Boson
+# Boson.start
+# extend Hirb::Console
+

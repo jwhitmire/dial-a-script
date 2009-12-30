@@ -1,0 +1,3 @@
+# drop this line in your ~/.bashrc to enable the usage of the ~/bin/shell_method_missing command
+
+trap 'if ! type -t $BASH_COMMAND >/dev/null; then ~/bin/shell_method_missing $BASH_COMMAND; fi' DEBUG

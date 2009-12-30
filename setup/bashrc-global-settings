@@ -1,0 +1,4 @@
+# if you have multiple users on the machine and want them all to pull
+# in some global settings, use this and put the other stuff in /etc/bashrc
+
+[ -f /etc/bashrc ] && . /etc/bashrc

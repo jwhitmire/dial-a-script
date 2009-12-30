@@ -1,0 +1,7 @@
+# contents of my ~/.bash_profile
+PATH=$HOME/bin:/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/sbin:$PATH
+export PATH
+
+# note: .bashrc is not automatically loaded, this is necessary
+source ~/.bashrc
+

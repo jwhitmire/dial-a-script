@@ -1,0 +1,13 @@
+# copy this to ~/.gemrc
+
+--- 
+:benchmark: false
+:verbose: true
+:update_sources: true
+gem: --no-ri --no-rdoc
+gemcutter_key: <gemcutter api key>
+:sources: 
+- http://gemcutter.org
+- http://gems.rubyforge.org
+:backtrace: false
+:bulk_threshold: 1000

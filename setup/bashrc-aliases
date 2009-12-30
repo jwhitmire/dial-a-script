@@ -1,0 +1,36 @@
+#######################################
+# aliases
+#######################################
+
+# GREP_COLOR=bright yellow on black bg.
+# use GREP_COLOR=7 to highlight whitespace on black terminals
+# LANG=C for speed. See also: http://www.pixelbeat.org/scripts/findrepo
+alias grep='GREP_COLOR="1;33;40" LANG=C grep --color=auto'
+
+alias ls="BLOCK_SIZE=\'1 ls --color=auto" #enable thousands grouping and colour
+alias minicom='minicom -c on' #enable colour
+alias cal='cal -3' #show 3 months by default
+alias units='units -t' #terse mode
+alias diff='LC_ALL=C TZ=GMT0 diff -Naur' #normalise diffs for distribution
+alias lynx='lynx -force_html -width=$COLUMNS' #best settings for viewing HTML
+alias links='links -force-html' #need to enable colour in config menu manually
+alias xterm='xterm -fb "" -bg black -fg gray -fa "Sans Mono" -fs 10 +sb -sl 3000 -g 80x50+1+1'
+alias gdb='gdb -tui' #enable the text window interface if possible
+
+
+alias ..="cd .."        # go to parent dir
+alias ...="cd ../.."    # go to grandparent dir
+alias -- -="cd -"       # go to previous dir
+alias l.='ls -d .*'     # list hidden files
+alias ls='ls -G'        # turn on colors by default
+alias ll='ls -lhrt'     # extra info compared to "l"
+alias lld='ls -lUd */'  # list directories
+
+# make and change to a directory
+md () { mkdir -p "$1" && cd "$1"; }
+
+# what most people want from od (hexdump)
+alias hd='od -Ax -tx1z -v'
+
+# canonicalize path (including resolving symlinks)
+alias realpath='readlink -f'

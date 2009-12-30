@@ -1,0 +1,610 @@
+# Add these sake tasks to yours, this is a copy of my ~/.sake file
+
+desc 'Print out a unique list of the queries that your app is generating.'
+task 'app:queries', :needs => [ 'environment' ] do
+  returning(queries = []) do
+    IO.readlines("#{RAILS_ROOT}/log/#{RAILS_ENV}.log").each do |line|
+      next unless line.match(/(SELECT.*)\e\[0m\n$/)
+      (queries << $1) unless queries.include?($1)
+    end
+  end
+  queries.sort.each { |q| puts(q) }
+end
+
+desc 'Find all .erb or .rhtml files in the current directory tree and report any syntax errors'
+task 'check:erb' do
+  require("erb")
+  require("open3")
+  (Dir["**/*.erb"] + Dir["**/*.rhtml"]).each do |file|
+    next if file.match("vendor/rails")
+    Open3.popen3("ruby -c") do |stdin, stdout, stderr|
+      stdin.puts(ERB.new(File.read(file), nil, "-").src)
+      stdin.close
+      error = stderr.readline rescue false
+      if error then
+        puts("#{file}:#{(error.match(/on line (\d+)/)[1] + ":") rescue nil} #{error}")
+      end
+      puts(error) if error
+      begin
+        stdout.close
+      rescue
+        false
+      end
+      begin
+        stderr.close
+      rescue
+        false
+      end
+    end
+  end
+end
+
+desc 'Find all .rb files in the current directory tree and report any syntax errors'
+task 'check:ruby' do
+  require("open3")
+  Dir["**/*.rb"].each do |file|
+    next if file.match("vendor/rails")
+    next if file.match("vendor/plugins/.*/generators/.*/templates")
+    Open3.popen3("ruby -c #{file}") do |stdin, stdout, stderr|
+      error = stderr.readline rescue false
+      if error then
+        puts("#{file}:#{(error.match(/on line (\d+)/)[1] + ":") rescue nil} #{error}")
+      end
+      begin
+        stdin.close
+      rescue
+        false
+      end
+      begin
+        stdout.close
+      rescue
+        false
+      end
+      begin
+        stderr.close
+      rescue
+        false
+      end
+    end
+  end
+end
+
+desc 'Find all .yml files in the current directory tree and report any syntax errors'
+task 'check:yaml' do
+  require("yaml")
+  Dir["**/*.yml"].each do |file|
+    next if file.match("vendor/rails")
+    begin
+      YAML.load_file(file)
+    rescue => e
+      puts("#{file}:#{(e.message.match(/on line (\d+)/)[1] + ":") rescue nil} #{e.message}")
+    end
+  end
+end
+
+desc 'Creates the databases defined in your config/database.yml (unless they already exist)'
+task 'db:create', :needs => [ 'environment' ] do
+  ActiveRecord::Base.configurations.each_value do |config|
+    begin
+      (ActiveRecord::Base.establish_connection(config)
+      ActiveRecord::Base.connection)
+    rescue
+      case config["adapter"]
+      when "mysql" then
+        ActiveRecord::Base.establish_connection(config.merge("database" => nil))
+        ActiveRecord::Base.connection.create_database(config["database"])
+        ActiveRecord::Base.establish_connection(config)
+      when "postgresql" then
+        `createdb \"#{config["database"]}\" -E utf8`
+      else
+        # do nothing
+      end
+    end
+  end
+  ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[(RAILS_ENV or "development")])
+end
+
+desc 'Drops the database for your current RAILS_ENV as defined in config/database.yml'
+task 'db:drop', :needs => [ 'environment' ] do
+  config = ActiveRecord::Base.configurations[(RAILS_ENV or "development")]
+  case config["adapter"]
+  when "mysql" then
+    begin
+      (ActiveRecord::Base.establish_connection(config)
+      ActiveRecord::Base.connection.current_database
+      ActiveRecord::Base.connection.drop_database(config["database"]))
+    rescue
+      # do nothing
+    end
+  when "sqlite3" then
+    FileUtils.rm_f(File.join(RAILS_ROOT, config["database"]))
+  when "postgresql" then
+    `dropdb \"#{config["database"]}\"`
+  else
+    # do nothing
+  end
+end
+
+desc 'Drops, creates and then migrates the database for your current RAILS_ENV. Target specific version with VERSION=x'
+task 'db:reset', :needs => [ 'db:drop', 'db:create', 'db:migrate' ] do
+  # do nothing
+end
+
+desc 'Builds and installs a gem within its source; uses \'rake install[_gem]\' or the gemspec'
+task 'gem:install' do
+  install_tasks = `rake -T | grep \"^rake install\" | sed -e \"s/#.*//\" | sed -e \"s/^rake //\"`.split("\n")
+  if (install_tasks.size > 0) then
+    task = install_tasks.first.strip
+    puts("Running 'rake #{task}'...")
+    sh("rake #{task}")
+    exit
+  end
+  if gemspec = Dir["*.gemspec"].first then
+    puts("Building #{gemspec}")
+    sh("gem build #{gemspec}")
+    gem = `ls -t *.gem`.split("\n").first
+    puts("Installing #{gem}")
+    sh("sudo gem install #{gem}")
+  end
+end
+
+desc 'Return path to a gem in cache; e.g. sake gems:find activerecord | xargs mate'
+task 'gems:find' do
+  if ARGV.last then
+    gem_path = Gem.source_index.find_name(ARGV.last).last.full_gem_path
+  else
+    gem_path = Gem.source_index.find_name("sources").last.full_gem_path.split("sources").first
+  end
+  print(gem_path)
+end
+
+desc 'Print list of Gem downloads from rubyforge.org'
+task 'gems:rubyforge:downloads' do
+  require("rubygems")
+  require("open-uri")
+  require("hpricot")
+  def print_gems
+    content = ""
+    open("http://gems.rubyforge.org/stats.html").each do |line|
+      (content << line)
+    end
+    doc = Hpricot(content)
+    rows = []
+    doc.search("table/tr").each do |row|
+      (rows << row.search("/").collect { |e| e.inner_html })
+    end
+    max_lengths = get_max_lengths(rows)
+    print_dashes(max_lengths)
+    print_row(rows[0], max_lengths)
+    print_dashes(max_lengths)
+    rows[(1..-1)].each { |row| print_row(row, max_lengths) }
+    print_dashes(max_lengths)
+  end
+  def get_max_lengths(rows)
+    max_lengths = [0, 0]
+    rows.inject(max_lengths) do |max_lengths, row|
+      max_lengths[0] = row[0].length if (row[0].length > max_lengths[0])
+      max_lengths[1] = row[1].length if (row[1].length > max_lengths[1])
+      max_lengths
+    end
+    max_lengths
+  end
+  def print_dashes(max_lengths)
+    puts(("-" * ((max_lengths[0] + max_lengths[1]) + 7)))
+  end
+  def print_row(row, max_lengths)
+    printf("| %#{max_lengths[0]}s | %#{max_lengths[1]}s |", row[0], row[1])
+    puts
+  end
+  print_gems
+end
+
+desc 'List data from gems currently on rubyforge'
+task 'gems:rubyforge:list' do
+  print("Collecting gem data ... ")
+  gem_index = YAML.load(open("http://gems.rubyforge.org/yaml"))
+  puts("done (#{gem_index.entries.size} gems found)")
+  print("Processing list ... ")
+  gem_hash = {  }
+  gem_index.entries.each do |gem_title, gem|
+    gem_hash[gem.name] ||= []
+    (gem_hash[gem.name] << gem.version.version)
+  end
+  puts("done.")
+  puts("Results:")
+  puts("-------------------")
+  gem_hash.keys.sort.each do |name|
+    puts("#{name} (#{gem_hash[name].sort.reverse.join(", ")})")
+  end
+end
+
+desc 'Flog the most commonly revised files in the git history'
+task 'git:analyze:commits:flog_frequent' do
+  counts = Hash.new(0)
+  IO.popen("PAGER=cat git log --name-only --pretty=oneline 2>&1") do |pipe|
+    until pipe.eof do
+      (line = pipe.readline
+      next unless line =~ /^(app|lib).*\.rb$/
+      counts[line.chomp] += 1)
+    end
+  end
+  counts.sort_by { |item| item.last }.reverse.first(15).each do |item|
+    flog_score = `flog -s #{item.first}`.to_f.round
+    puts("#{item.first} (in #{item.last} commits) (Flog: #{flog_score})")
+  end
+end
+
+desc 'Install man pages for current git version'
+task 'git:manpages:install' do
+  unless git_version = `git --version`.scan(/[\d.]+/)[0] then
+    puts("Git not installed or 'git --version' not returning format 'git version A.B.C.D'")
+    exit
+  end
+  puts("Installing manpages for git #{git_version}")
+  require("fileutils")
+  FileUtils.mkdir_p("/usr/local/share/man")
+  FileUtils.chdir("/tmp") do
+    puts("Downloading and unpacking manpages in #{`pwd`}")
+    `curl -O \"http://kernel.org/pub/software/scm/git/git-manpages-#{git_version}.tar.bz2\"`
+    puts(`sudo tar xjv -C /usr/local/share/man -f git-manpages-#{git_version}.tar.bz2`)
+  end
+  puts("Test your git manpages by trying the command: man git")
+end
+
+desc 'Push all changes to the SVN repository'
+task 'git:publish' do
+  branch = `git branch | grep \"*\"`.strip[(2..-1)]
+  if (branch == "master") then
+    switch = false
+  else
+    `git diff-files --quiet`
+    if ($?.exitstatus == 1) then
+      puts("You have outstanding changes. Please commit them first.")
+      exit(1)
+    end
+    puts("* Merging topic '#{branch}' back into master...")
+    `git checkout master`
+    sh("git merge #{branch}")
+    switch = true
+  end
+  puts("* Pushing changes...")
+  sh("git svn dcommit")
+  if switch then
+    puts("* Switching back to #{branch}...")
+    `git checkout #{branch}`
+  end
+end
+
+desc 'Pull new commits from the repository'
+task 'git:pull' do
+  puts("* Pulling in new commits...")
+  sh("git fetch")
+  `git diff-files --quiet`
+  if ($?.exitstatus == 1) then
+    stash = true
+    clear = (`git stash list`.scan("\n").size == 0)
+    puts("* Saving changes...")
+    `git stash save`
+  else
+    stash = false
+  end
+  branch = `git branch | grep \"*\"`.strip[(2..-1)]
+  if (branch == "master") then
+    switch = false
+  else
+    switch = true
+    `git checkout master`
+    puts("* Switching back to master...")
+  end
+  puts("* Applying new commits...")
+  sh("git rebase origin")
+  if switch then
+    puts("* Porting changes into #{branch}...")
+    `git checkout #{branch}`
+    sh("git rebase master")
+  end
+  if stash then
+    puts("* Applying changes...")
+    sh("git stash apply")
+    `git stash clear` if clear
+  end
+end
+
+desc 'Push all changes to the repository'
+task 'git:push' do
+  branch = `git branch | grep \"*\"`.strip[(2..-1)]
+  if (branch == "master") then
+    switch = false
+  else
+    `git diff-files --quiet`
+    if ($?.exitstatus == 1) then
+      puts("You have outstanding changes. Please commit them first.")
+      exit(1)
+    end
+    puts("* Merging topic '#{branch}' back into master...")
+    `git checkout master`
+    sh("git merge #{branch}")
+    switch = true
+  end
+  puts("* Pushing changes...")
+  sh("git push")
+  if switch then
+    puts("* Switching back to #{branch}...")
+    `git checkout #{branch}`
+  end
+end
+
+desc 'Pull new commits from the SVN repository'
+task 'git:rebase' do
+  `git diff-files --quiet`
+  if ($?.exitstatus == 1) then
+    stash = true
+    clear = (`git stash list`.scan("\n").size == 0)
+    puts("* Saving changes...")
+    `git stash save`
+  else
+    stash = false
+  end
+  branch = `git branch | grep \"*\"`.strip[(2..-1)]
+  if (branch == "master") then
+    switch = false
+  else
+    switch = true
+    `git checkout master`
+    puts("* Switching back to master...")
+  end
+  puts("* Pulling in new commits...")
+  sh("git svn fetch")
+  sh("git rebase trunk")
+  if switch then
+    puts("* Porting changes into #{branch}...")
+    `git checkout #{branch}`
+    sh("git rebase master")
+  end
+  if stash then
+    puts("* Applying changes...")
+    sh("git stash apply")
+    `git stash clear` if clear
+  end
+end
+
+desc 'Downloads and installs latest version of git'
+task 'git:src:install', :needs => [ 'git:src:latest_version' ] do
+  download_url = ENV["GIT_DOWNLOAD_URL"]
+  git_package = File.basename(download_url)
+  git_src_folder = git_package.gsub(/.tar.gz/, "")
+  target_base_folder = "/usr/local"
+  usr_src_folder = File.join(target_base_folder, "src")
+  require("fileutils")
+  FileUtils.mkdir_p(usr_src_folder)
+  FileUtils.chdir(usr_src_folder) do
+    if File.exists?(git_package) then
+      puts("File #{git_package} already downloaded, skipping download...")
+    else
+      `wget #{download_url}`
+    end
+    if File.exists?(git_src_folder) then
+      puts("Removing existing #{git_src_folder} source")
+      FileUtils.rm_rf(git_src_folder)
+    end
+    puts("Unpacking #{git_src_folder}")
+    `tar xfv #{git_package}`
+    FileUtils.chdir(git_src_folder) do
+      puts("Installing to #{target_base_folder}")
+      sh("make prefix=#{target_base_folder} all")
+      sh("sudo make prefix=#{target_base_folder} install all")
+    end
+  end
+  puts("Run 'sake git:manpages:install' to install manpages for #{`git --version`}")
+end
+
+task 'git:src:latest_version' do
+  require("rubygems")
+  begin
+    (gem("hpricot")
+    require("hpricot"))
+  rescue LoadError
+    puts("REQUIREMENT: Hpricot")
+    puts("Installation: sudo gem install hpricot")
+    exit
+  end
+  require("open-uri")
+  doc = open("http://git.or.cz/").read
+  if download_url = doc.match(/http:\/\/kernel.org\/pub\/software\/scm\/git\/git-([\d.]+).tar.gz/) then
+    ENV["GIT_DOWNLOAD_URL"] = download_url[0]
+    puts("Current git src version: #{$1}")
+  end
+end
+
+desc 'Show the current status of the checkout'
+task 'git:status' do
+  system("git status")
+end
+
+desc 'Create a new topic branch'
+task 'git:topic' do
+  require("readline")
+  total = `git branch`.scan("quick").size
+  (total == 0) ? (default = "quick") : (default = "quick#{(total + 1)}")
+  name = Readline.readline("Topic name (default #{default}): ")
+  name = default if name.strip.empty?
+  sh("git checkout -b #{name}")
+end
+
+desc 'Recursively update your git projects'
+task 'git:update' do
+  `find #{File.expand_path(".")} -name .git -type d`.collect do |d|
+    d.chomp("/.git\n")
+  end.each do |prj|
+    puts(prj)
+    Dir.chdir(prj)
+    if `git config --get svn-remote.svn.url`.empty? then
+      `git remote update`
+    else
+      `git svn fetch`
+    end
+  end
+end
+
+desc 'Install GEM=gemname or GEMS=gem1,gem2 into each multiruby gem cache'
+task 'multiruby:gems:install' do
+  unless gems = (ENV["GEM"] or ENV["GEMS"]) then
+    puts("        Usage:\n        sake multiruby:gems:install GEM=gemname\n        sake multiruby:gems:install GEMS=gem1,gem2\n".gsub(/        /, ""))
+  end
+  gems = gems.split(/,\s*/)
+  sh("multiruby -S gem install --no-ri --no-rdoc --development #{gems.join(" ")}")
+end
+
+desc 'Runs specs in current project against multiruby'
+task 'multiruby:spec' do
+  default_ruby_flags = "-w -I#{["lib", "ext", "bin", "test"].join(File::PATH_SEPARATOR)}"
+  ruby_flags = (ENV["RUBY_FLAGS"] or default_ruby_flags)
+  filter = ENV["FILTER"]
+  test_globs = ENV["TEST"] ? ([ENV["TEST"]]) : (["spec/**/*_spec.rb"])
+  tests = (["rubygems", "spec"] + test_globs.map { |g| Dir.glob(g) }.flatten)
+  tests.map! { |f| "require \"#{f}\"" }
+  cmd = "#{ruby_flags} -e '#{tests.join("; ")}' #{filter}"
+  system("multiruby #{cmd}")
+end
+
+desc 'Runs tests in current project against multiruby'
+task 'multiruby:test' do
+  default_ruby_flags = "-w -I#{["lib", "ext", "bin", "test"].join(File::PATH_SEPARATOR)}"
+  ruby_flags = (ENV["RUBY_FLAGS"] or default_ruby_flags)
+  filter = ENV["FILTER"]
+  test_globs = ENV["TEST"] ? ([ENV["TEST"]]) : (["test/**/test_*.rb"])
+  tests = (["rubygems", "test/unit"] + test_globs.map { |g| Dir.glob(g) }.flatten)
+  tests.map! { |f| "require \"#{f}\"" }
+  cmd = "#{ruby_flags} -e '#{tests.join("; ")}' #{filter}"
+  system("multiruby #{cmd}")
+end
+
+desc 'Runs any tests or specs in current project against multiruby'
+task 'multiruby', :needs => [ 'multiruby:test', 'multiruby:spec' ] do
+  # do nothing
+end
+
+desc 'Launch mysql shell.'
+task 'mysql:console', :needs => [ 'mysql:params' ] do
+  sh("mysql #{ENV["MYSQL_PARAMS"]}")
+end
+
+desc 'Dump the database to FILE (depends on mysql:params)'
+task 'mysql:dump', :needs => [ 'mysql:params' ] do
+  fname = (ENV["FILE"] or ENV["DEFAULT_DB_DUMP_NAME"])
+  zipper = "| gzip" if fname =~ /\.gz$/
+  cmd = "mysqldump --add-drop-table --add-locks -K -e #{ENV["MYSQL_PARAMS"]} #{zipper} > #{fname}"
+  sh(cmd)
+end
+
+desc 'Load the database from FILE (depends on mysql:params)'
+task 'mysql:load', :needs => [ 'mysql:params' ] do
+  fname = (ENV["FILE"] or ENV["DEFAULT_DB_DUMP_NAME"])
+  if fname =~ /\.gz$/ then
+    cmd = "gunzip < #{fname} | mysql #{ENV["MYSQL_PARAMS"]}"
+  else
+    cmd = "mysql #{ENV["MYSQL_PARAMS"]} < #{fname}"
+  end
+  sh(cmd)
+end
+
+task 'mysql:params', :needs => [ 'environment' ] do
+  ENV["DEFAULT_DB_DUMP_NAME"] = File.join(RAILS_ROOT, "db", "#{RAILS_ENV}-content.sql.gz")
+  config = ActiveRecord::Base.configurations[RAILS_ENV]
+  ENV["MYSQL_PARAMS"] = { :host => "-h", :username => "-u", :password => "-p", :database => nil }.map do |key, option|
+    value = (config[key] or config[key.to_s])
+    "#{option}#{value}" if value
+  end.join(" ")
+end
+
+desc 'Apply a patch directly from Pastie (or absolute url)'
+task 'patch:patch' do
+  require("open-uri")
+  pastie_url = "http://pastie.caboo.se/%s.txt"
+  patch_id = ENV["PASTE"].to_i
+  url = if (patch_id > 0) then
+    (pastie_url % patch_id)
+  else
+    (ENV["PASTE"] or ENV["PATCH"])
+  end
+  patch = open(url).read
+  File.open("patch.diff", "w+") { |f| f.puts(patch) }
+  `patch -p0 < patch.diff && rm patch.diff`
+  puts("Patched with #{url}.")
+end
+
+desc 'Print plugins managed by Piston.'
+task 'plugins:pistoned' do
+  width = 0
+  Dir["vendor/plugins/*"].each do |file|
+    new_length = file.split("/").last.length
+    width = (new_length > width) ? (new_length) : (width)
+  end
+  Dir["vendor/plugins/*"].each do |file|
+    revision = `svn propget piston:remote-revision #{file}`.strip
+    unless revision.empty? then
+      puts("#{file.split("/").last.ljust(width)}: r#{revision.ljust(6)} [#{`svn propget piston:root #{file}`.strip}]")
+    end
+  end
+  Dir["vendor/*"].each do |file|
+    unless revision = `svn propget piston:remote-revision #{file}`.strip.empty? then
+      puts("#{file.split("/").last.ljust(width)}: r#{revision.rjust(6)} [#{`svn propget piston:root #{file}`.strip}]")
+    end
+  end
+end
+
+desc 'Install your public key on a remote server.'
+task 'ssh:install_public_key' do
+  begin
+    (require("rubygems")
+    require("net/ssh")
+    require("net/scp")
+    require("highline"))
+  rescue LoadError
+    abort("There was a problem loading net-ssh, net-scp, or highline.  Please make sure you have them installed via RubyGems.")
+  end
+  public_key = if ENV["public_key_path"] then
+    if File.exists?(ENV["public_key_path"]) then
+      ENV["public_key_path"]
+    else
+      abort("The key you provided via the command line does not exist!")
+    end
+  else
+    discovered_key = ["id_rsa", "id_dsa", "identity"].detect do |f|
+      File.exists?("#{ENV["HOME"]}/.ssh/#{f}.pub")
+    end
+    if discovered_key then
+      discovered_key
+    else
+      abort("I wasn't able to discover your public key.  I tried to find id_rsa.pub, id_dsa.pub,\nor identity.pub in \"#{ENV["HOME"]}/.ssh\".  You can hard code the path to the file by \npassing public_key_path via the command line.\n")
+    end
+  end
+  h = HighLine.new
+  not_blank = Proc.new { |s| (not s.empty?) }
+  def not_blank.to_s
+    "not blank"
+  end
+  h.say("I need some information to SSH into the server.")
+  hostname = h.ask("Remote Hostname: ") { |q| q.validate = not_blank }
+  username = h.ask("Username, enter for default: ") { |q| q.default = ENV["USER"] }
+  password = h.ask("Password: ") { |q| q.echo = "*" }
+  begin
+    Net::SSH.start(hostname, username, :password => password) do |ssh|
+      puts("Uploading your public key... ")
+      ssh.scp.upload!(public_key_path, "my_public_key")
+      puts("Creating '.ssh' directory in your home directory")
+      ssh.exec!("mkdir .ssh")
+      puts("Concatenating your public key into the authorized_keys file")
+      ssh.exec!("cat my_public_key >> .ssh/authorized_keys")
+      puts("Removing your public key")
+      ssh.exec!("rm my_public_key")
+      puts("Setting permissions on .ssh")
+      ssh.exec!("chmod 700 .ssh")
+      puts("Setting permissions on your authorized_keys file")
+      ssh.exec!("chmod 600 .ssh/authorized_keys")
+      puts("\nAll done!  Enjoy your new, potentially password-free login.")
+    end
+  rescue Net::SSH::AuthenticationFailed
+    puts("\nWhat we've got here... is a failure to communicate.  There was a problem authenticating you.")
+  end
+end

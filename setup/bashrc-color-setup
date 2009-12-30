@@ -1,0 +1,15 @@
+# This stuff goes into your ~/.bashrc to enable color usage in the terminal
+
+export EDITOR=vim
+export TERM=xterm-color
+
+# obviously one of these is irrelevant, but I'm not sure which
+export LSCOLORS="gxfxcxdxbxegedabagacad"
+export LS_COLORS='di=1:fi=0:ln=31:pi=5:so=5:bd=5:cd=5:or=31:mi=0:ex=35:*.rb=90'
+
+# GREP_COLOR=bright yellow on black bg.
+# use GREP_COLOR=7 to highlight whitespace on black terminals
+# LANG=C for speed. See also: http://www.pixelbeat.org/scripts/findrepo
+alias grep='GREP_COLOR="1;33;40" LANG=C grep --color=auto'
+
+alias ls='ls -G'        # turn on colors by default

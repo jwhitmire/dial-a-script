@@ -1,0 +1,33 @@
+#
+# Copy this to ~/.gitconfig
+#
+# Be sure to replace all of the <your ??? here> with the appropriate values
+#
+
+[user]
+    name = <your name here>
+    email = <your email here>
+[alias]
+    co = checkout
+    st = "!echo ; echo working as `git config user.name` ; echo ; git status"
+    ci = commit
+    rb = rebase
+    sm = submodule
+[apply]
+    whitespace = nowarn
+[color]
+    diff = auto
+    status = auto
+    branch = auto
+    interactive = auto
+[format]
+    numbered = auto
+[core]
+    excludesfile = /Users/<your username here>/.gitignore
+[github]
+    user = <your github username here>
+    token = <your github api key here>
+[push]
+    default = tracking
+[branch]
+    autosetupmerge = true

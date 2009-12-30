@@ -1,0 +1,7 @@
+# Copy this to (or add it to) ~/.gitignore to set your global file ignores for git
+
+doc
+pkg
+*.log
+.DS_Store
+.svn
