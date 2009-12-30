@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+# Graphical tree output of a filesystem
+# `tree somepath_to_start_from`
+#
+# TODO show actual graphical output with dashes and bars
+# TODO allow command-line options
+
+use strict;
+use File::Find;
+
+my ($startdir) = @ARGV;
+
+# global vars
+my ( $current_indent, $lastdir, $default_indent );
+
+MAIN:
+{
+
+    # TODO add other options and allow adjustment from
+    # command line
+  $current_indent = 0;
+  $lastdir = $startdir || "./";
+  $lastdir .= '/' unless ($lastdir =~ m#/$#);
+  
+  $default_indent = count_char($lastdir, "/");
+    
+  find( { wanted => \&showtree }, $lastdir );
+}
+
+#########################
+
+sub showtree
+{
+    my ( $file, $dir, $fullpath ) = ( $_, $File::Find::dir, $File::Find::name );
+  
+  my $tabs = count_char($fullpath, "/") - $default_indent;
+  
+    print "\t"x$tabs . "$file\n";
+}
+
+
+sub count_char
+{
+  my ($string, $char_to_count) = @_;
+
+  my $counter = 0;
+  while ($string =~ m#$char_to_count#g) {$counter++;}
+  return $counter;
+}
+
