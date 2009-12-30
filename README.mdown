@@ -29,9 +29,15 @@ or fork and send a patch via a pull request.
     * Sets up the tracking stuff for a local git repo based on the local branch name.
     * After pushing a branch, or the initial repo push, just run "git track" and it will connect all of the dots.
 
-## Still to come...
+* mysql goodies
+    * current-mysql-settings.sh
+        * Dumps the current mysql settings for your database
+    * mysql-tuning-script.sh
+        * Suggests changes to your my.cnf settings file based on current usage.  This works best after your database has been running for a while.
+        * Taken from [http://www.day32.com/MySQL/]()
 
-* I plan on creating a directory with all of the snippets from my .bash\_profile and .bashrc that I depend on as well as aliases, etc.
-* other stuff to add that I use but have not identified yet
-* git setup (autocomplete, etc)
+* setup directory
+    * Contains the pertinent details about my initialization files.
+    * bashrc-* files are snippets from my .bashrc that show different parts for setting up pieces of my environment
+    * Most should be self-explanatory and usually contains a comment as to how to install/configure them
 
