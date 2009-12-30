@@ -1,0 +1,2 @@
+cat ~/.ssh/*.pub | ssh $1 'mkdir .ssh; chmod 700 .ssh; cat >> .ssh/authorized_keys'
+
