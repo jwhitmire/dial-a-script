@@ -1,0 +1,37 @@
+# You've reached 1-800-dial-a-script
+
+This is a random collection of helpful stuff I use and always stick in my ~/bin 
+directory.  Some are original, most have been stolen.  I tried to retain citations
+the originals where possible.
+
+I wasn't really sure of the best way to maintain this to make it easier for others
+to use.  This is a repo of my ~/bin directory where I just add the useful stuff for
+posterity sake.  You could just copy them where you like, or send me a suggestion about
+how this would be more helpful to set up if you have any ideas.
+
+If you stumble across this and find it useful, I'd love to know about it.  I'd also be happy
+to incorporate any improvements or additions you care to offer.  You can send them to me directly,
+or fork and send a patch via a pull request.
+
+## Somewhat incomplete list of current goodies:
+
+* rails-commands
+    * stolen from [rails-cmds](http://github.com/bry4n/rails-cmds)
+    * shortcuts for the standard stuff under the script directory of any rails project.
+
+* shell\_method\_missing
+    * stolen and modified from [the peepcode blog](http://blog.peepcode.com/tutorials/2009/shell-method-missing)
+    * acts as a method\_missing type operation for the command line
+    * rather than try to keep the list here in two places, if you want to see the types of operations available, run shell\_method\_missing with no arguments and get the list from the usage statement but it handles things like cloning git repos, running tests, pulling down and untarring files, etc.
+
+* git-track
+    * sadly I have no recollection of where this one originally came from.  If you were the originator, I'm sorry I will be happy to make restitution and grant credit where it's due.
+    * Sets up the tracking stuff for a local git repo based on the local branch name.
+    * After pushing a branch, or the initial repo push, just run "git track" and it will connect all of the dots.
+
+## Still to come...
+
+* I plan on creating a directory with all of the snippets from my .bash\_profile and .bashrc that I depend on as well as aliases, etc.
+* other stuff to add that I use but have not identified yet
+* git setup (autocomplete, etc)
+
