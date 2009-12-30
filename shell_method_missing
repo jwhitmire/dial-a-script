@@ -9,11 +9,21 @@
 # MODIFIED:    Geoffrey Grosenbach
 #              http://peepcode.com
 #
+# MODIFIED AGAIN: Jeff Whitmire
+#                 http://jwhitmire.com
+#                 Shamelessly stolen and modified from http://blog.peepcode.com/tutorials/2009/shell-method-missing
+#                 Long live peepcode!
+#                 I added the usage section to print out the available usages
+#                 if no args are given.
+#
 # INSTALL:
 #              zsh:
 #                   function command_not_found_handler() {
 #                     ~/bin/shell_method_missing $*
 #                   }
+#
+#              bash:  (place this in .bashrc or .bash_login)
+#                   trap 'if ! type -t $BASH_COMMAND >/dev/null; then ~/bin/shell_method_missing $BASH_COMMAND; fi' DEBUG
 
 # Use all arguments
 command = ARGV
@@ -88,6 +98,7 @@ when /^(.*) (.*)\.git$/
   system ("cd #{destination_directory}")
   echo "\nCloned as \'#{destination_directory}\'"
 
+# TODO: also handle other compression types (.bz2, .Z), or other filenames (.tgz)
 when /^(?:ftp|https?):\/\/.+\.t(?:ar\.)?gz$/
   # Download and unzip a URL
   run "curl #{command} | tar xzv"
@@ -95,6 +106,7 @@ when /^(?:ftp|https?):\/\/.+\.t(?:ar\.)?gz$/
 when /^[a-z0-9_\-\/]+\.feature$/
   run "cucumber", command
 
+#TODO: Handle specifying other gem sources (may not be an issue since gems.github.com is gone)
 when /^[A-Za-z0-9_\-\/]+\.gem$/
   # Install a gem
   # @example
@@ -111,4 +123,5 @@ end
 # * cd to a path
 # * Run a spec by name
 # * Run a rake task by name
-
+# * ssh to known host
+# * scp a file to/from known host
