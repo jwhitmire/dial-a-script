@@ -1,0 +1,32 @@
+#!/bin/sh
+############################################################
+# Print the ASCII Color Table
+############################################################
+# originally by AntiGenX
+# from: http://forums.macosxhints.com/showthread.php?t=17068
+#
+# edits and cleanup by catfish
+#
+for i in 0 1 4 5 7; do
+    case $i in
+    0) MODE="Normal";;
+    1) MODE="Bold";;
+    4) MODE="Underline";;
+    5) MODE="Blink";;
+    7) MODE="Inverse";;
+    *) MODE="undefined";;
+    esac
+    echo
+    echo "----------------------------------------------------------------"
+    printf " Mode: %-12s Code: ESC[%s;Foreground;Background\n" ${MODE} $i
+    echo "----------------------------------------------------------------"
+    for fore in 30 31 32 33 34 35 36 37; do
+        for back in 40 41 42 43 44 45 46 47; do
+            printf '\033[%s;%s;%sm %02s;%02s ' $i $fore $back $fore $back
+            done
+            printf '\033[0m'
+            echo
+            done
+            done
+            echo
+            exit 0
