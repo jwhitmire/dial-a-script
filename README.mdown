@@ -29,6 +29,8 @@ or fork and send a patch via a pull request.
     * Sets up the tracking stuff for a local git repo based on the local branch name.
     * After pushing a branch, or the initial repo push, just run "git track" and it will connect all of the dots.
 
+* [gist](http://github.com/defunkt/gist) -- command line tool for creating gists
+
 * mysql goodies
     * current-mysql-settings.sh
         * Dumps the current mysql settings for your database
