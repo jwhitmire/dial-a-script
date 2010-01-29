@@ -109,6 +109,8 @@ shove     shovebox://url?url=%r&title=%t              Catch current page in <a h
 
 @Dailyburn Support
 @Shortcuts to help support go easier.
+db      http://dailyburn.com                      Takes you to the DailyBurn homepage
 lr      http://dailyburn.com/locker_room/%s       Takes you to the locker room for the given user
 flag    http://dailyburn.com/admin/flags          Flags page for forum posts and images
 sup     http://dailyburn.com/login?support=true   Support site
+pt      http://pivotaltracker.com                 PivotalTracker main url
