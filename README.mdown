@@ -43,3 +43,7 @@ or fork and send a patch via a pull request.
     * bashrc-* files are snippets from my .bashrc that show different parts for setting up pieces of my environment
     * Most should be self-explanatory and usually contains a comment as to how to install/configure them
 
+* quix
+    * jw-quix.txt file is my customized version of a command file for [Quix](http://quixapp.com/)
+    * [Quix Syntax](http://quixapp.com/help/syntax/)
+    * [Default command file](http://quixapp.com/quix.txt)
