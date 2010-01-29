@@ -45,5 +45,11 @@ or fork and send a patch via a pull request.
 
 * quix
     * jw-quix.txt file is my customized version of a command file for [Quix](http://quixapp.com/)
-    * [Quix Syntax](http://quixapp.com/help/syntax/)
-    * [Default command file](http://quixapp.com/quix.txt)
+    * General Quix info
+        * [Quix Syntax](http://quixapp.com/help/syntax/)
+        * [Default command file](http://quixapp.com/quix.txt)
+    * Dailyburn commands
+        * lr - Takes you to the locker room for the given user
+        * flag - Flags page for forum posts and images
+        * sup - Support site
+    
