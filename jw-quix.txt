@@ -107,10 +107,14 @@ snap      littlesnapper://snap/%r                 Snap the current page in <a hr
 delibar     Delibar://bpost&!p!&%r&!p!&%t&!p!&%s          Bookmark the current page using <a href="http://www.delibarapp.com/">Delibar</a>
 shove     shovebox://url?url=%r&title=%t              Catch current page in <a href="http://www.wonderwarp.com/shovebox/">Shovebox</a>
 
-@Dailyburn Support
+@Dailyburn 
 @Shortcuts to help support go easier.
-db      http://dailyburn.com                      Takes you to the DailyBurn homepage
-lr      http://dailyburn.com/locker_room/%s       Takes you to the locker room for the given user
-flag    http://dailyburn.com/admin/flags          Flags page for forum posts and images
-sup     http://dailyburn.com/login?support=true   Support site
-pt      http://pivotaltracker.com                 PivotalTracker main url
+db      http://dailyburn.com                                          Takes you to the DailyBurn homepage
+lr      http://dailyburn.com/locker_room/%s                           Takes you to the locker room for the given user
+flag    http://dailyburn.com/admin/flags                              Flags page for forum posts and images
+sup     http://dailyburn.com/login?support=true                       Support site
+supo    http://support.dailyburn.com/dashboard/pending?order=old      Support Pending Tickets, Oldest first
+supn    http://support.dailyburn.com/dashboard/pending?order=newest   Support Pending Tickets, Oldest first
+pt      http://pivotaltracker.com                                     PivotalTracker main url
+
+

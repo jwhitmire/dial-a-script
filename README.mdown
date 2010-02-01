@@ -16,40 +16,46 @@ or fork and send a patch via a pull request.
 ## Somewhat incomplete list of current goodies:
 
 * rails-commands
-    * stolen from [rails-cmds](http://github.com/bry4n/rails-cmds)
-    * shortcuts for the standard stuff under the script directory of any rails project.
+  * stolen from [rails-cmds](http://github.com/bry4n/rails-cmds)
+  * shortcuts for the standard stuff under the script directory of any rails project.
 
 * shell\_method\_missing
-    * stolen and modified from [the peepcode blog](http://blog.peepcode.com/tutorials/2009/shell-method-missing)
-    * acts as a method\_missing type operation for the command line
-    * rather than try to keep the list here in two places, if you want to see the types of operations available, run shell\_method\_missing with no arguments and get the list from the usage statement but it handles things like cloning git repos, running tests, pulling down and untarring files, etc.
+  * stolen and modified from [the peepcode blog](http://blog.peepcode.com/tutorials/2009/shell-method-missing)
+  * acts as a method\_missing type operation for the command line
+  * rather than try to keep the list here in two places, if you want to see the types of operations available, run shell\_method\_missing with no arguments and get the list from the usage statement but it handles things like cloning git repos, running tests, pulling down and untarring files, etc.
 
 * git-track
-    * sadly I have no recollection of where this one originally came from.  If you were the originator, I'm sorry I will be happy to make restitution and grant credit where it's due.
-    * Sets up the tracking stuff for a local git repo based on the local branch name.
-    * After pushing a branch, or the initial repo push, just run "git track" and it will connect all of the dots.
+  * sadly I have no recollection of where this one originally came from.  If you were the originator, I'm sorry I will be happy to make restitution and grant credit where it's due.
+  * Sets up the tracking stuff for a local git repo based on the local branch name.
+  * After pushing a branch, or the initial repo push, just run "git track" and it will connect all of the dots.
 
 * [gist](http://github.com/defunkt/gist) -- command line tool for creating gists
 
 * mysql goodies
-    * current-mysql-settings.sh
-        * Dumps the current mysql settings for your database
-    * mysql-tuning-script.sh
-        * Suggests changes to your my.cnf settings file based on current usage.  This works best after your database has been running for a while.
-        * Taken from [http://www.day32.com/MySQL/]()
-
-* setup directory
-    * Contains the pertinent details about my initialization files.
-    * bashrc-* files are snippets from my .bashrc that show different parts for setting up pieces of my environment
-    * Most should be self-explanatory and usually contains a comment as to how to install/configure them
+  * current-mysql-settings.sh
+    * Dumps the current mysql settings for your database
+  * mysql-tuning-script.sh
+    * Suggests changes to your my.cnf settings file based on current usage.  This works best after your database has been running for a while.
+    * Taken from [http://www.day32.com/MySQL/]()
 
 * quix
-    * jw-quix.txt file is my customized version of a command file for [Quix](http://quixapp.com/)
-    * General Quix info
-        * [Quix Syntax](http://quixapp.com/help/syntax/)
-        * [Default command file](http://quixapp.com/quix.txt)
-    * Dailyburn commands
-        * lr - Takes you to the locker room for the given user
-        * flag - Flags page for forum posts and images
-        * sup - Support site
-    
+  * jw-quix.txt file is my customized version of a command file for [Quix](http://quixapp.com/)
+  * General Quix info
+    * [Quix Syntax](http://quixapp.com/help/syntax/)
+    * [Default command file](http://quixapp.com/quix.txt)
+  * Dailyburn commands
+    * db - Takes you to the Dailyburn homepage
+    * pt - Pivotal Tracker homepage
+    * lr - Takes you to the locker room for the given user
+    * flag - Flags page for forum posts and images
+    * sup - Support site
+    * supo - Support pending tickets -- oldest first
+    * supn - Support pending tickets -- newest first
+
+* setup directory
+  * Contains the pertinent details about my initialization files.
+  * bashrc-* files are snippets from my .bashrc that show different parts for setting up pieces of my environment
+  * Most should be self-explanatory and usually contains a comment as to how to install/configure them
+
+* misc directory -- Miscellaneous things I want to track to use on other projects and had no other place to put
+  * dates.rake -- Very useful rake task for dumping out defined date formats
