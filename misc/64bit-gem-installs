@@ -1,0 +1,5 @@
+# in order to force a 64 bit architecture setting on a gem install, use this:
+
+env ARCHFLAGS="-arch x86_64" gem install curb
+
+ 

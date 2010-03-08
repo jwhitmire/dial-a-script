@@ -1,0 +1,3 @@
+# Due to issues with readline, the following is required to work with rvm installs:
+
+rvm install 1.9.1 -C --with-readline-dir=/usr/local/
